@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Basic Sliding Puzzle</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #container {
+            position: absolute;
+            left: 50.0vw;
+            top: 50.0vh;
+            z-index: 1;
+            font-family: Arial, sans-serif;
+        }
+
+        #view-panel {
+            position: absolute;
+            left: -50.0vmin;
+            top: -49.0vh;
+            width: 100.0vmin;
+            font-size: 1.5vmin;
+            color: white;
+        }
+
+        #mouse-help-panel {
+            display: none;
+            position: absolute;
+            left: -50.0vmin;
+            top: -31.5vmin;
+            width: 100.0vmin;
+            font-size: 1.3vmin;
+            color: white;
+        }
+
+        #keyboard-help-panel {
+            display: none;
+            position: absolute;
+            left: -50.0vmin;
+            top: -16.75vmin;
+            width: 100.0vmin;
+            font-size: 1.3vmin;
+            color: white;
+        }
+
+        #credits-panel {
+            display: none;
+            position: absolute;
+            left: -50.0vmin;
+            top: 21.0vmin;
+            width: 100.0vmin;
+            font-size: 1.3vmin;
+            color: white;
+        }
+
+        #puzzle-panel {
+            position: absolute;
+            left: -49.5vw;
+            bottom: -49.0vh;
+            font-size: 1.5vmin;
+            color: white;
+        }
+
+        table {
+            table-layout: fixed;
+            margin: auto;
+            border: 1px solid black;
+        }
+
+        table.view {
+            text-align: right;
+            background-color: #44444470;
+        }
+
+        table.mouse-help {
+            width: 50vmin;
+            background-color: #44444450;
+        }
+
+        table.keyboard-help {
+            width: 50vmin;
+            background-color: #44444450;
+        }
+
+        table.credits {
+            width: 50vmin;
+            background-color: #44444450;
+        }
+
+        table.puzzle {
+            text-align: right;
+            background-color: #44444470;
+        }
+
+        th,
+        td {
+            overflow: hidden;
+            border: 1px solid black;
+        }
+
+        a {
+            color: white;
+        }
+
+        #projection {
+            width: 15ch;
+            height: 7ch;
+            font-size: 1.5vmin;
+        }
+
+        #horizontal,
+        #vertical,
+        #distance,
+        #zoom {
+            width: 10ch;
+            font-size: 1.5vmin;
+        }
+
+        #reset {
+            width: 15ch;
+            height: 7ch;
+            font-size: 1.5vmin;
+        }
+
+        #shuffle {
+            width: 18.0ch;
+            font-size: 1.5vmin;
+        }
+
+        #grid-size {
+            width: 6.0ch;
+            font-size: 1.5vmin;
+        }
+
+        input:invalid {
+            background-color: pink;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="view-panel">
+            <table class="view">
+                <tr>
+                    <td rowspan="2">
+                        <select id="projection">
+                            <option value="perspective">Perspective</option>
+                            <option value="orthographic">Orthographic</option>
+                        </select>
+                    </td>
+                    <td>
+                        Orientation (h):
+                        <input type="number" id="horizontal" required>
+                    </td>
+                    <td>
+                        Orientation (v):
+                        <input type="number" id="vertical" required>
+                    </td>
+                    <td rowspan="2">
+                        <input type="button" id="reset" value="Reset view">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Distance:
+                        <input type="number" id="distance" required>
+                    </td>
+                    <td>
+                        Zoom:
+                        <input type="number" id="zoom" required>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="mouse-help-panel">
+            <table class="mouse-help" id="mouse-help-table">
+                <tr>
+                    <th colspan="2" style="font-size: 2.0vmin">
+                        Help - Mouse
+                    </th>
+                </tr>
+                <tr>
+                    <td>Primary button</td>
+                    <td>Slide</td>
+                </tr>
+                <tr>
+                    <td>Secondary button</td>
+                    <td>Orbit</td>
+                </tr>
+                <tr>
+                    <td>Shift-wheel</td>
+                    <td>Dolly</td>
+                </tr>
+                <tr>
+                    <td>Wheel</td>
+                    <td>Zoom</td>
+                </tr>
+            </table>
+        </div>
+        <div id="keyboard-help-panel">
+            <table class="keyboard-help" id="keyboard-help-table">
+                <tr>
+                    <th colspan="2" style="font-size: 2.0vmin">
+                        Help - Keyboard
+                    </th>
+                </tr>
+                <tr>
+                    <th colspan="2" style="text-align: left">Enable / disable features</th>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Audio</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Background</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Separator</td>
+                </tr>
+                <tr>
+                    <th colspan="2" style="text-align: left">Display / hide subwindows</th>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Statistics</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>User interface</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Help and credits</td>
+                </tr>
+                <tr>
+                    <th colspan="2" style="text-align: left">Play</th>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Shuffle tiles</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Slide left</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Slide right</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Slide down</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Slide up</td>
+                </tr>
+            </table>
+        </div>
+        <div id="credits-panel">
+            <table class="credits" id="credits-table">
+                <tr>
+                    <th style="font-size: 2.0vmin">
+                        Credits
+                    </th>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+        <div id="puzzle-panel">
+            <table class="puzzle">
+                <tr>
+                    <td>
+                        Audio:
+                        <input type="checkbox" id="audio">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Background:
+                        <input type="checkbox" id="background">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Separator:
+                        <input type="checkbox" id="separator">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Statistics:
+                        <input type="checkbox" id="statistics">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        User interface:
+                        <input type="checkbox" id="user-interface">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Help and credits:
+                        <input type="checkbox" id="help">
+                    </td>
+                </tr>
+                <tr>
+                <tr>
+                    <td>
+                        Size (n x n):
+                        <input type="number" id="grid-size" required>
+                    </td>
+                </tr>
+                <td>
+                    <input type="button" id="shuffle" value="Shuffle tiles">
+                </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "../three.js-master/build/three.module.js",
+                "three/addons/": "../three.js-master/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="../lodash/lodash.js"></script>
+    <script type="module">
+        import * as THREE from "three";
+        import Orientation from "./orientation.js";
+        import SlidingPuzzle from "./sliding_puzzle.js";
+
+        let slidingPuzzle;
+
+        function initialize() {
+            // Create the game
+            slidingPuzzle = new SlidingPuzzle(
+                {}, // General Parameters
+                {
+                    enabled: true,
+                    clips: [
+                        {
+                            url: "./clips/Ba-Bum-Tss-Joke-Drum-A1-www.fesliyanstudios.com.mp3",
+                            loop: false,
+                            volume: 0.5
+                        },
+                        {
+                            url: "./clips/yay-6326.mp3",
+                            loop: false,
+                            volume: 0.25
+                        },
+                        {
+                            url: "./clips/crowd-cheer-ii-6263.mp3",
+                            loop: false,
+                            volume: 0.25
+                        }
+                    ],
+                    credits: "Sound clips downloaded from <a href='https://www.dreamstime.com/' target='_blank' rel='noopener'>Dreamstime</a>, <a href='https://www.fesliyanstudios.com/' target='_blank' rel='noopener'>Fesliyan Studios</a> and <a href='https://pixabay.com/' target='_blank' rel='noopener'>Pixabay</a>."
+                }, // Audio parameters
+                {
+                    images: {
+                        bitmaps: [
+                            {
+                                url: "./images/beautiful-stag-in-the-autumn-landscape-2048x2048_474649-mm-90.jpg",
+                                credits: "(2) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/best-forest-image-landscape-2048x2048_898468-mm-90.jpg",
+                                credits: "(3) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/colorado-ablaze-sunset-photography-2048x2048_949654-mm-90.jpg",
+                                credits: "(4) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/epic-winter-sunset-free-photo-2048x2048_787898-mm-90.jpg",
+                                credits: "(5) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/jokulsorlon-glacier-lagoon-image-2048x2048_899985-mm-90.jpg",
+                                credits: "(6) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/kapitan-borchardt-sailing-ship-2048x2048_574855-mm-90.jpg",
+                                credits: "(7) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/macos-big-sur-wallpaper-2048x2048_897485-mm-90.jpg",
+                                credits: "(8) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/mountain-peak-covered-with-snow-2048x2048_579774-mm-90.jpg",
+                                credits: "(9) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/nature-in-norway-4k-photography-2048x2048_579874-mm-90.jpg",
+                                credits: "(10) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/saint-mary-s-lighthouse-2048x2048_788598-mm-90.jpg",
+                                credits: "(11) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/salt-lakes-2048x2048_579697-mm-90.jpg",
+                                credits: "(12) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/siberian-tiger-in-winter-landscape-2048x2048_579655-mb-90.jpg",
+                                credits: "(13) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/sun-rays-through-forest-trees-photography-2048x2048_788678-mm-90.jpg",
+                                credits: "(14) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/sunset-on-the-desert-dunes-2048x2048_474569-mm-90.jpg",
+                                credits: "(15) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/sunset-over-the-grand-canyon-2048x2048_664944-mm-90.jpg",
+                                credits: "(16) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/super-landscape-and-a-big-waterfall-2048x2048_785754-mm-90.jpg",
+                                credits: "(17) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/surreal-sunset-4k-photo-2048x2048_897595-mm-90.jpg",
+                                credits: "(18) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/toscana-italy-wonderful-landscape-photo-2048x2048_788568-mm-90.jpg",
+                                credits: "(19) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/view-from-a-drone-above-the-ocean-shore-2048x2048_574865-mm-90.jpg",
+                                credits: "(20) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            },
+                            {
+                                url: "./images/winter-landscape-from-bedretto-switzerland-2048x2048_666948-mm-90.jpg",
+                                credits: "(21) Image downloaded from <a href='https://uhdwallpapers.org/' target='_blank' rel='noopener'>HD Wallpapers</a>."
+                            }
+                        ]
+                    }
+                }, // Board parameters
+                {}, // Frame parameters
+                {}, // Tile parameters
+                {
+                    intensity: 0.1
+                }, // Ambient light parameters
+                {
+                    intensity: 2.0,
+                    offset: new THREE.Vector3(20.0, 20.0, 0.0),
+                    castShadow: true,
+                    shadow: {
+                        mapSize: new THREE.Vector2(2048, 2048),
+                        camera: {
+                            left: -20.0,
+                            right: 20.0,
+                            top: 20.0,
+                            bottom: -20.0,
+                            near: 0.0,
+                            far: 40.0
+                        }
+                    }
+                }, // Directional light parameters
+                {} // Camera parameters
+            );
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // Update the game
+            slidingPuzzle.update();
+        }
+
+        initialize();
+        animate();
+    </script>
+</body>
+
+</html>
